@@ -12,6 +12,7 @@ Used Libraries (You have to add these libs to your project to work with EpubVnoc
 EpubVnoc is an Epub converter library that converts PDF files to Epub files.
 
 **Features:**
+* Text-Style and Image extraction
 * Image format support (JPEG, PNG and GIF)
 * Device resolution support
 * Handle PDF linebreaks the way you like
