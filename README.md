@@ -1,7 +1,8 @@
 EpubVonc
 ========
 
-#Java version 1.7
+Java version 1.7
+-----------
 
 Used Libraries:
 * iText5.5.0
