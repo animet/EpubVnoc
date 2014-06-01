@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.file.Files;
 
+import Vnoc.Log.Logger;
+
 
 public class EpubPreparation {
 
@@ -25,6 +27,7 @@ public class EpubPreparation {
 	public EpubPreparation(String outputPath)
 	{
 		this.outputPath = outputPath;
+		Logger.initLogger(outputPath);
 		init();
 	}
 	private void init()
@@ -39,7 +42,9 @@ public class EpubPreparation {
 	public void prepare() throws IOException
 	{
 		createFolders();
+		Logger.addLogMessage("Folders created.");
 		createNecessaryFiles();
+		Logger.addLogMessage("Necessary files created.");
 		copyPageTemplate();
 	}
 	
@@ -71,8 +76,10 @@ public class EpubPreparation {
 		File dest = new File(pStyles + "\\" + "page-template.xpgt");
 		try {
 			Files.copy(source.toPath(), dest.toPath());
+			Logger.addLogMessage("Pagetemplate copied.");
 		} catch (IOException e) {
 			e.printStackTrace();
+			Logger.addLogMessageWithStackTrace("Couldn't copy pagetemplate!", e.getStackTrace());
 		}
 	}
 }

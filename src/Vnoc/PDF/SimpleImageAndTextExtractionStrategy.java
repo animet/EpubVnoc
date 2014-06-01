@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import Vnoc.Documents.Images.Image;
+import Vnoc.Log.Logger;
 
 import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.parser.ImageRenderInfo;
@@ -14,12 +15,19 @@ import com.itextpdf.text.pdf.parser.Vector;
 
 public class SimpleImageAndTextExtractionStrategy extends SimpleTextExtractionStrategy{
 
+	public static final int TEXT_FORMAT_SEQUENCE_SEPARATION_CHAR = 1425; //HEBREW ACCENT ETNAHTA (U+0591)
+	//public static final int TEXT_FORMAT_SINGLE_PART_SEPARATION_CHAR = 1426; //HEBREW ACCENT SEGOL (U+0592)
 	String textFormat;
+	String separationRegEx;
+	String separationChar;
 	ArrayList<Float> baseLineY_Values;
 	ArrayList<Image> images;
 	public SimpleImageAndTextExtractionStrategy()
 	{
-		textFormat = "|";
+		Logger.addLogMessage("SimpleImageAndTextExtractionStrategy Class: TEXT_FORMAT_SEQUENCE_SEPARATION_CHAR = " + TEXT_FORMAT_SEQUENCE_SEPARATION_CHAR);
+		separationChar = String.valueOf((char)TEXT_FORMAT_SEQUENCE_SEPARATION_CHAR);
+		separationRegEx = "\\" + new String(separationChar);
+		textFormat = new String(separationRegEx);
 		baseLineY_Values = new ArrayList<Float>();
 		images = new ArrayList<Image>();
 	}
@@ -78,25 +86,25 @@ public class SimpleImageAndTextExtractionStrategy extends SimpleTextExtractionSt
 			fontName = cutLastFontStyle_Weight(renderInfo.getFont().getPostscriptFontName());
 		else if (fontName.equals(""))
 			fontName = renderInfo.getFont().getPostscriptFontName();
-		textFormat += renderInfo.getText().length() + ":" + fontName + ":" + fontStyle + ":" + fontWeight + ":" + rect.getHeight() + "|";
+		textFormat += renderInfo.getText().length() + ":" + fontName + ":" + fontStyle + ":" + fontWeight + ":" + rect.getHeight() + separationChar;
 	}
 	
 	private void CompressTextFormat()
 	{
-		String compressedTextFormat = "|";
+		String compressedTextFormat = new String(separationChar);
 		String oldFontName = "";
 		String oldFontStyle = "";
 		String oldFontWeight = "";
 		float oldFontSize = 0;
 		int currentLength = 0;
-		for(int i = 1; i < textFormat.split("\\|").length; i++)
+		for(int i = 1; i < textFormat.split(separationRegEx).length; i++)
 		{
-			String textSegment = textFormat.split("\\|")[i];
+			String textSegment = textFormat.split(separationRegEx)[i];
 			boolean isEqual = true;
 			if( !oldFontName.equals(textSegment.split("\\:")[1]) || oldFontSize != Float.valueOf(textSegment.split("\\:")[4]) 
 					|| !oldFontStyle.equals(textSegment.split("\\:")[2]) || !oldFontWeight.equals(textSegment.split("\\:")[3]))
 			{
-				compressedTextFormat += currentLength + ":" + oldFontName + ":" + oldFontStyle + ":" + oldFontWeight + ":" + oldFontSize + "|";
+				compressedTextFormat += currentLength + ":" + oldFontName + ":" + oldFontStyle + ":" + oldFontWeight + ":" + oldFontSize + separationChar;
 				oldFontName = textSegment.split("\\:")[1];
 				oldFontStyle = textSegment.split("\\:")[2];
 				oldFontWeight = textSegment.split("\\:")[3];
@@ -108,8 +116,8 @@ public class SimpleImageAndTextExtractionStrategy extends SimpleTextExtractionSt
 			if(isEqual)
 				currentLength += Integer.valueOf(textSegment.split("\\:")[0]);
 			
-			if(i == textFormat.split("\\|").length - 1)
-				compressedTextFormat += currentLength + ":" + oldFontName + ":" + oldFontStyle + ":" + oldFontWeight + ":" + oldFontSize + "|";
+			if(i == textFormat.split(separationRegEx).length - 1)
+				compressedTextFormat += currentLength + ":" + oldFontName + ":" + oldFontStyle + ":" + oldFontWeight + ":" + oldFontSize + separationChar;
 		}
 		textFormat = compressedTextFormat;
 	}

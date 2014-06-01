@@ -18,13 +18,18 @@ public class CssStyleSheetCreation {
 	public void createCssStyleSheet(String stylePath) throws FileNotFoundException
 	{
 		PrintWriter writer = new PrintWriter(stylePath+ "\\" + getCssStyleSheetFileName());
-		for(int i = 0; i < page.fText.getSegmentSize(); i++)
+		int styleNumber = 0;
+		for(int i = 0; i < page.formatedText.getFormatedLinesCount(); i++)
 		{
-			String fontSizePx = String.valueOf(page.fText.getSegmentFontSizeInPx(i));
-			String fontFamily = page.fText.getSegmentFontName(i);
-			String fontStyle = page.fText.getSegmentFontStyle(i);
-			String fontWeight = page.fText.getSegmentFontWeight(i);
-			writer.println(".style"+String.valueOf(i)+"{ font-family:" + fontFamily+";font-style:"+ fontStyle + ";font-weight:" +fontWeight+"; font-size:"+ fontSizePx +"px; "  + "}");
+			for (int k = 0; k < page.formatedText.getFormatedLine(i).getTextSegmentsCount(); k++)
+			{
+				String fontSizePx = String.valueOf(page.formatedText.getFormatedLine(i).getTextSegment(k).fontSizeInPx);
+				String fontFamily = page.formatedText.getFormatedLine(i).getTextSegment(k).fontName;
+				String fontStyle = page.formatedText.getFormatedLine(i).getTextSegment(k).fontStyle;
+				String fontWeight = page.formatedText.getFormatedLine(i).getTextSegment(k).fontWeight;
+				writer.println(".style"+String.valueOf(styleNumber)+"{ font-family:" + fontFamily+";font-style:"+ fontStyle + ";font-weight:" +fontWeight+"; font-size:"+ fontSizePx +"px; "  + "}");
+				styleNumber++;
+			}
 		}
 		writer.flush();
 		writer.close();

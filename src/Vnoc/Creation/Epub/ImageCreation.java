@@ -5,6 +5,7 @@ import Vnoc.Documents.Page;
 import Vnoc.Documents.Images.Image;
 import Vnoc.Documents.Images.Size;
 import Vnoc.Enums.Documents.Images.ImageFormat;
+import Vnoc.Log.Logger;
 
 public class ImageCreation {
 
@@ -28,6 +29,7 @@ public class ImageCreation {
 	
 	public void createImages()
 	{
+		Logger.addLogMessage("Begin creating and editing of images by default.");
 		for(int i = 0; i < doc.getPages().size(); i++)
 		{
 			Page p = doc.getPages().get(i);
@@ -42,6 +44,7 @@ public class ImageCreation {
 	
 	public void createImages(ImageFormat imgFormat)
 	{
+		Logger.addLogMessage("Begin creating and editing of images by image format:" + imgFormat.toString());
 		for(int i = 0; i < doc.getPages().size(); i++)
 		{
 			Page p = doc.getPages().get(i);

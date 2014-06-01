@@ -9,12 +9,16 @@ import java.io.FileNotFoundException;
 
 
 
+
+
 import javax.imageio.ImageIO;
 
 import Vnoc.Documents.Document;
 import Vnoc.Documents.Page;
+import Vnoc.Documents.Formatting.FormatedLine;
 import Vnoc.Enums.Creation.FormatMode;
 import Vnoc.HTML.SignConverter;
+import Vnoc.Log.Logger;
 import Vnoc.Tags.Tag;
 import Vnoc.Tags.TagDocument;
 
@@ -47,7 +51,8 @@ public class XhtmlPageCreation {
 	{
 		for (int i = 0; i < doc.getPages().size(); i++)
 		{
-			createXhtmlPage(doc.getPages().get(i), i+1, outputPath+"OEBPS", formatMode);
+			Logger.addLogMessage("Creating xhtml page("+(i+1) + ") ...");
+			createXhtmlPage(doc.getPages().get(i), i+1, outputPath+"\\OEBPS", formatMode);
 		}
 	}
 	
@@ -56,13 +61,36 @@ public class XhtmlPageCreation {
 		createXhtmlPageHead(OEBPSPath, page, pageNumber);
 		Tag mainP = new Tag("p");
 		
+		Logger.addLogMessage("Begin to format page(" + pageNumber+") ...");
 		if(formatMode.equals(FormatMode.DoLineBreaks) || formatMode.equals(FormatMode.DoSpacesPlaceOfLineBreaks))
 			page = getFormatedPage(page, formatMode);
 		
 		page = getPageWithHtmlImages(page);
 		
-		String pageText = getPageText(page);
-		int segmentIndexStartLength = 0;
+		int styleNumber = 0;
+		for (int i = 0; i < page.getFormatedLineCount(); i++)
+		{
+			int lineSegmentStartIndex = 0;
+			int lineSegmentEndIndex = 0;
+			for (int k = 0; k < page.formatedText.getFormatedLine(i).getTextSegmentsCount(); k++)
+			{
+				Tag span = new Tag("span");
+				span.addAttribute("class", "style" + String.valueOf(styleNumber));
+				lineSegmentEndIndex += page.formatedText.getFormatedLine(i).getTextSegment(k).characterLength;
+				String lineTextSegment = page.formatedText.getFormatedLine(i).getText().substring(lineSegmentStartIndex, lineSegmentEndIndex);
+				lineTextSegment = SignConverter.getHtmlFormatedText(lineTextSegment);
+				lineTextSegment = lineTextSegment.replace("&<noHtml;", "");
+				lineTextSegment = lineTextSegment.replace("&noHtml>;", "");
+				
+				if(formatMode.equals(FormatMode.DoLineBreaks))
+					lineTextSegment = lineTextSegment.replaceAll(CUSTOM_LINE_BREAK_REGEX, HTML_LINE_BREAK);
+				span.setInnerText(lineTextSegment);
+				mainP.addChild(span);
+				lineSegmentStartIndex = lineSegmentEndIndex;
+				styleNumber++;
+			}
+		}
+		/*int segmentIndexStartLength = 0;
 		int segmentIndexEndLength = 0;
 		for (int i = 0; i < page.fText.getSegmentSize(); i++)
 		{
@@ -79,7 +107,7 @@ public class XhtmlPageCreation {
 			span.setInnerText(textSegment);
 			segmentIndexStartLength += page.fText.getSegmentCharacterLength(i);
 			mainP.addChild(span);
-		}
+		}*/
 		body.addChild(mainP);
 		html.addChild(body);
 		tagDoc.addTag(html);
@@ -122,9 +150,11 @@ public class XhtmlPageCreation {
 		else if (formatMode.equals(FormatMode.DoSpacesPlaceOfLineBreaks))
 			lineBreak = " ";
 		
-		for(int i = 0; i < page.fText.getLineCount(); i++)
+		for(int i = 0; i < page.formatedText.getFormatedLinesCount(); i++)
 		{
-			page.fText.addStringToEndOfLine(i, lineBreak);
+			FormatedLine formatedLine = page.formatedText.getFormatedLine(i);
+			formatedLine.addTextAfter(lineBreak, formatedLine.length() - 1);
+			page.formatedText.setFormatedLine(i, formatedLine);
 		}
 		return fPage;
 	}
@@ -141,22 +171,20 @@ public class XhtmlPageCreation {
 		return strNum;
 	}
 	
-	private String getPageText(Page page)
-	{
-		String text = "";
-		for(int i = 0; i < page.fText.getLineCount(); i++)
-		{
-			text += page.fText.getLine(i); //+ " ";
-		}
-		return text;
-	}
-	
 	private Page getPageWithHtmlImages(Page page)
 	{
 		for(int i = 0; i < page.getImageCount(); i++)
 		{
 			String imageString = SignConverter.NO_HTML_SIGN_CONVERT_BEGIN + "<div style=\"text-align:center;\"><img alt=\"\" src=\"../Images/"+page.getImage(i).getFileName()+"."+page.getImage(i).getFileExtension()+"\" /></div><br />" + SignConverter.NO_HTML_SIGN_CONVERT_END;
-			page.fText.addStringToEndOfLine(page.getImage(i).getLineIndex(), imageString);
+			if (page.getImage(i).getLineIndex() > page.getFormatedLineCount() - 1)
+				Logger.addCriticalLogMessage("Extracted image line index is greater than max page lines!");
+			else
+			{
+				//page.fText.addStringToEndOfLine(page.getImage(i).getLineIndex(), imageString);
+				FormatedLine formatedLine = page.formatedText.getFormatedLine(page.getImage(i).getLineIndex());
+				formatedLine.addTextAfter(imageString, formatedLine.length() - 1);
+				page.formatedText.setFormatedLine(page.getImage(i).getLineIndex(), formatedLine);
+			}
 		}
 		return page;
 	}

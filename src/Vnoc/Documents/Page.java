@@ -5,15 +5,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import Vnoc.Documents.Formatting.FormatedPageText;
+import Vnoc.Documents.Formatting.RawFormatedPageText;
 import Vnoc.Documents.Images.Image;
 
 public class Page {
 
-	public FormatedPageText fText;
+	public FormatedPageText formatedText;
 	ArrayList<Image> images;
 	public Page()
 	{
-		fText = new FormatedPageText();
 		images = new ArrayList<Image>();
 	}
 	
@@ -32,9 +32,9 @@ public class Page {
 			images.get(i).dispose();
 	}
 	
-	public int getLineCount()
+	public int getFormatedLineCount()
 	{
-		return fText.getLineCount();
+		return formatedText.getLineCount();
 	}
 	
 	public Image getImage(int index)

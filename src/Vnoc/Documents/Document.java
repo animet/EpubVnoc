@@ -37,13 +37,13 @@ public class Document {
 	public void addPage(Page page)
 	{
 		pages.add(page);
-		lineCount += page.getLineCount();
+		lineCount += page.getFormatedLineCount();
 	}
 	public void addPages(Collection<? extends Page> pages)
 	{
 		this.pages.addAll(pages);
 		for(Page p : pages)
-			lineCount += p.getLineCount();
+			lineCount += p.getFormatedLineCount();
 	}
 	
 	public ArrayList<Page> getPages()
